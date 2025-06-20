@@ -46,18 +46,33 @@ class _DoaListScreenState extends State<DoaListScreen> {
     }
 
     Future<void> fetchDoa() async {
-        final response = await http.get(Uri.parse('https://open-api.my.id/api/doa'));
+        try {
+            final response = await http.get(Uri.parse('https://open-api.my.id/api/doa'));
 
-        if (response.statusCode == 200) {
-            final List jsonData = json.decode(response.body);
+            if (response.statusCode == 200) {
+                final List jsonData = json.decode(response.body);
+                setState(() {
+                    _doaList = jsonData.map((e) => Doa.fromJson(e)).toList();
+                    _isLoading = false;
+                });
+            } else {
+                setState(() {
+                    _isLoading = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal memuat doa dari server')),
+                );
+            }
+        } catch (e) {
             setState(() {
-                _doaList = jsonData.map((e) => Doa.fromJson(e)).toList();
                 _isLoading = false;
             });
-        } else {
-            throw Exception('Gagal memuat doa');
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Terjadi kesalahan: $e')),
+            );
         }
     }
+
 
     @override
     Widget build(BuildContext context) {
